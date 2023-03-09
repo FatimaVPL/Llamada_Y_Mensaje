@@ -21,8 +21,6 @@ class MainActivity : AppCompatActivity() {
 
     val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION).apply {
         addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED)
-        //addAction("android.intent.action.PHONE_STATE")
-        //addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
     }
 
     private fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
