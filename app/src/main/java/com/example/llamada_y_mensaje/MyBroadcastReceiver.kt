@@ -3,47 +3,42 @@ package com.example.llamada_y_mensaje
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.provider.Telephony
-import android.telephony.SmsMessage
+import android.telephony.SmsManager
+import android.telephony.TelephonyManager
 import android.util.Log
-import android.widget.Toast
-
-private const val TAG = "MyBroadcastReceiver"
 
 class MyBroadcastReceiver : BroadcastReceiver() {
-
     override fun onReceive(context: Context, intent: Intent) {
 
-        when(intent.action){
-            Intent.ACTION_BOOT_COMPLETED -> {  Toast.makeText(context,
-                "SE boot el sistema", Toast.LENGTH_LONG).show()
-            }
-            Telephony.Sms.Intents.SMS_RECEIVED_ACTION -> {
-                val bndSMS = intent.extras
-                val pdus = bndSMS!!["pdus"] as Array<Any>?
-                val smms: Array<SmsMessage?> = arrayOfNulls<SmsMessage>(pdus!!.size)
-                var strMensaje = ""
-                for (i in 0 until smms.size) {
-                    smms[i] = SmsMessage.createFromPdu(pdus[i] as ByteArray)
-                    strMensaje = "Mensaje: " + smms[i]!!.getOriginatingAddress() + "\n" +
-                            smms[i]!!.getMessageBody().toString();
+
+        if (intent.action == TelephonyManager.ACTION_PHONE_STATE_CHANGED) {
+            val state = intent.getStringExtra(TelephonyManager.EXTRA_STATE)
+            if (state == TelephonyManager.EXTRA_STATE_RINGING) {
+
+                // El teléfono está sonando, obtén el número de teléfono que está llamando
+                val phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER)
+
+                Log.i("Telefono",phoneNumber.toString())
+
+                Log.i("Numero Guardado","numero guardado")
+
+                // Obtenemos los datos guardados en las preferencias compartidas
+                val sharedPrefs = context.getSharedPreferences("myPrefs", Context.MODE_PRIVATE)
+                Log.i("myPrefs",sharedPrefs.toString())
+                val savedPhoneNumber = sharedPrefs.getString("phoneNumber", "")
+                Log.i("numero",savedPhoneNumber.toString())
+                val savedMessage = sharedPrefs.getString("message", "")
+                Log.i("mensaje",savedMessage.toString())
+
+                // Si el número de teléfono que está llamando coincide con el número guardado en las preferencias,
+                // enviamos la respuesta automática
+                if (phoneNumber == savedPhoneNumber) {
+                    val smsManager = SmsManager.getDefault()
+                    smsManager.sendTextMessage(phoneNumber, null, savedMessage, null, null)
+                    Log.i("Respuesta","Mensaje enviado correctamnete")
+                }else{
+                    Log.i("Respuesta","Hubo un problema al enviar el mensaje")
                 }
-                Log.d("MiBroadcast", strMensaje);
-                Toast.makeText(context, strMensaje, Toast.LENGTH_LONG).show()
-            }
-
-            else -> {
-
-            }
-
-        }
-
-        StringBuilder().apply {
-            append("Action: ${intent.action}\n")
-            append("URI: ${intent.toUri(Intent.URI_INTENT_SCHEME)}\n")
-            toString().also { log ->
-                Log.d(TAG, log)
-                Toast.makeText(context, log, Toast.LENGTH_LONG).show()
             }
         }
     }

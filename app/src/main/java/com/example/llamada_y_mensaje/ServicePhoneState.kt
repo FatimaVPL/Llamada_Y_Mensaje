@@ -7,27 +7,33 @@ import android.os.IBinder
 import android.telephony.TelephonyManager
 
 class ServicePhoneState : Service() {
-    val br : MyBroadcastReceiver = MyBroadcastReceiver()
-    val intentFilter: IntentFilter = IntentFilter(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
+    private lateinit var callReceiver: MyBroadcastReceiver
+    private var isServiceRunning = false
 
-    override fun onBind(p0: Intent?): IBinder? {
-        //TODO("Not yet implemented")
+    override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        registerReceiver(br, intentFilter)
-    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (isServiceRunning) {
+            stopService(Intent(applicationContext, ServicePhoneState::class.java))
+        }
+        isServiceRunning = true
 
-        return super.onStartCommand(intent, flags, startId)
+        callReceiver = MyBroadcastReceiver()
+
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(TelephonyManager.ACTION_PHONE_STATE_CHANGED)
+
+        registerReceiver(callReceiver, intentFilter)
+
+        return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(br)
+        unregisterReceiver(callReceiver)
+        isServiceRunning = false
     }
-
 }
+

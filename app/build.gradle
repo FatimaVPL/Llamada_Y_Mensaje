@@ -7,6 +7,10 @@ android {
     namespace 'com.example.llamada_y_mensaje'
     compileSdk 33
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     defaultConfig {
         applicationId "com.example.llamada_y_mensaje"
         minSdk 24
